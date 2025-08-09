@@ -4,7 +4,9 @@ AI-powered inconsistency detection using Google Gemini.
 import json
 import logging
 import re
+import io
 from typing import List, Dict, Any, Optional
+from PIL import Image
 import google.generativeai as genai
 
 from utils.config import Config
@@ -67,6 +69,18 @@ class AIAnalyzer:
             
             if slide.numerical_data:
                 slide_info += f"\nNumerical Data: {json.dumps(slide.numerical_data, indent=2)}"
+                
+            # Add images directly
+            if slide.images_data:
+                slide_info +=f"\nAnalyzing images from slide {slide.slide_number}:"
+                for image_bytes in slide.images_data:
+                    try:
+                        # This will allow the AI to 'see' the image
+                        image = Image.open(io.BytesIO(image_bytes))
+                        slide_info += '\n' + image
+                    except Exception as e:
+                        logger.warning(f"Failed to open image bytes for analysis: {e}")
+                        continue
             
             content_parts.append(slide_info)
         
@@ -77,7 +91,14 @@ class AIAnalyzer:
         return f"""
 You are an expert analyst tasked with finding factual and logical inconsistencies in a PowerPoint presentation. 
 
-Analyze the following presentation content and identify ANY inconsistencies, contradictions, or logical errors across slides.
+Analyze the following presentation content, which includes text and images (charts, graphs, diagrams), and identify ANY inconsistencies, contradictions, or logical errors across slides.
+
+When analyzing images, pay special attention to:
+- **Graph and Chart data:** Read axes, data points, labels, and trends.
+- **Colors and labels:** Note how they are used to represent different data series.
+- **Diagrams and flowcharts:** Understand the relationships and logic they depict.
+- **Numbers and text:** Look for any numbers or text embedded within the images.
+
 
 TYPES OF INCONSISTENCIES TO DETECT:
 1. **Numerical Conflicts**: Conflicting revenue figures, percentages that don't add up, mismatched statistics
@@ -94,7 +115,7 @@ PRESENTATION CONTENT:
 INSTRUCTIONS:
 - Be thorough and meticulous in your analysis
 - Look for both obvious and subtle inconsistencies
-- Compare information across ALL slides
+- Compare information across ALL slides (both text and visual content)
 - Pay special attention to numerical data, dates, percentages, and factual claims
 - Consider context and domain knowledge
 - Only flag genuine inconsistencies, not minor variations in phrasing

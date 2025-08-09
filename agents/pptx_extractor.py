@@ -5,7 +5,7 @@ import io
 import re
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, ByteString
 from pptx import Presentation
 from pptx.shapes.base import BaseShape
 from pptx.shapes.picture import Picture
@@ -36,8 +36,14 @@ class PPTXExtractor:
             presentation = Presentation(file_path)
             slides = []
             
+            # New Step: Render all slides to images once
+            slides_as_images = self._render_slides_to_images(file_path)
+            
             for slide_idx, slide in enumerate(presentation.slides, 1):
-                slide_content = self._extract_slide_content(slide, slide_idx)
+                # Pass the full slide image data to the next method
+                slide_image_data = slides_as_images[slide_idx - 1]
+                
+                slide_content = self._extract_slide_content(slide, slide_idx, slide_image_data)
                 slides.append(slide_content)
                 logger.debug(f"Extracted content from slide {slide_idx}")
             
@@ -48,20 +54,24 @@ class PPTXExtractor:
             logger.error(f"Error extracting presentation: {e}")
             raise
     
-    def _extract_slide_content(self, slide, slide_number: int) -> SlideContent:
+    def _extract_slide_content(self, slide, slide_number: int, slide_image_data: ByteString) -> SlideContent:
         """Extract content from a single slide."""
         title = self._extract_title(slide)
         text_content = self._extract_text_content(slide)
         numerical_data = self._extract_numerical_data(text_content)
-        images_text = self._extract_images_text(slide)
+        # images_data = self._extract_images_data(slide)
         raw_content = self._get_raw_content(slide)
+        
+        # New Step: Collect all image data (full slide + individual images)
+        images_data = [slide_image_data] if slide_image_data else []
+        images_data.extend(self._extract_individual_images_data(slide))
         
         return SlideContent(
             slide_number=slide_number,
             title=title,
             text_content=text_content,
             numerical_data=numerical_data,
-            images_text=images_text,
+            images_data=images_data,
             raw_content=raw_content
         )
     
@@ -159,32 +169,6 @@ class PPTXExtractor:
         
         return '\n'.join(table_text)
     
-    def _extract_chart_text(self, chart) -> str:
-        """Extract text from a chart (title, labels, etc.)."""
-        chart_text = []
-        
-        try:
-            # Chart title
-            if hasattr(chart, 'chart_title') and chart.chart_title:
-                try:
-                    if chart.chart_title.text_frame:
-                        title_text = chart.chart_title.text_frame.text
-                        if title_text and title_text.strip():
-                            chart_text.append(f"Chart: {title_text.strip()}")
-                except (AttributeError, TypeError):
-                    pass
-            
-            # Category and series labels (if accessible)
-            # Note: Detailed chart data extraction is complex and may require
-            # additional libraries or XML parsing
-            chart_text.append("[CHART_DETECTED]")
-            
-        except Exception as e:
-            logger.debug(f"Error extracting chart text: {e}")
-            chart_text.append("[CHART_DETECTED]")
-        
-        return ' '.join(chart_text)
-    
     def _extract_numerical_data(self, text_content: List[str]) -> List[Dict[str, Any]]:
         """Extract numerical data from text content."""
         numerical_data = []
@@ -212,32 +196,27 @@ class PPTXExtractor:
         else:
             return 'number'
     
-    def _extract_images_text(self, slide) -> List[str]:
-        """Extract text from images in a slide (placeholder for OCR)."""
-        # This is a placeholder - in a real implementation, you would:
-        # 1. Extract images from the slide
-        # 2. Use OCR (like Tesseract) to extract text
-        # 3. Return the extracted text
-        
-        images_text = []
-        
+    def _extract_individual_images_data(self, slide) -> List[ByteString]:
+        """Extract raw image data from all individual picture shapes in a slide."""
+        individual_images = []
         for shape in slide.shapes:
-            try:
-                # Check for picture shapes
-                if hasattr(shape, 'image') or str(type(shape)).find('Picture') != -1:
-                    # Placeholder: In real implementation, perform OCR here
-                    # For now, we'll just note that an image exists
-                    images_text.append("[IMAGE_DETECTED - OCR would extract text here]")
-                
-                # Check for media shapes (videos, audio)
-                elif hasattr(shape, 'media_type'):
-                    images_text.append(f"[MEDIA_DETECTED - {getattr(shape, 'media_type', 'unknown')}]")
-                    
-            except Exception as e:
-                logger.debug(f"Error checking shape for images: {e}")
-                continue
+            if hasattr(shape, 'image'):
+                individual_images.append(shape.image.blob)
+        return individual_images
+    
+    def _render_slides_to_images(self, file_path: Path) -> List[ByteString]:
+        """
+        Helper function to render each slide of the presentation as an image.
+        This is a placeholder for your chosen implementation (e.g., using LibreOffice, a library, etc.).
+        """
+        logger.warning("Rendering slides to images is not implemented. Please add your chosen method here.")
+        # You would need to add your implementation here.
+        # Example using a hypothetical library:
+        # from pptx_image import convert_pptx_to_to_images
+        # return convert_pptx_to_to_images(file_path)
         
-        return images_text
+        # Returning a placeholder for now to prevent crashes
+        return [b""] * len(Presentation(file_path).slides)
     
     def _get_raw_content(self, slide) -> str:
         """Get raw content of the slide for comprehensive analysis."""

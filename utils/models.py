@@ -2,7 +2,7 @@
 Data models for PowerPoint contradiction detection.
 """
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, ByteString
 from enum import Enum
 
 class InconsistencyType(Enum):
@@ -29,7 +29,7 @@ class SlideContent:
     title: Optional[str]
     text_content: List[str]
     numerical_data: List[Dict[str, Any]]
-    images_text: List[str]  # OCR text from images
+    images_data: List[ByteString]
     raw_content: str
 
 @dataclass

@@ -171,7 +171,7 @@ The tool consists of several modular components:
 The tool uses Gemini 2.0 Flash with optimized settings:
 - **Temperature**: 0.1 (low for consistent analysis)
 - **Max Tokens**: 8192
-- **Model**: `gemini-2.0-flash-exp`
+- **Model**: `gemini-2.5-flash`
 
 ## 🎨 Customization
 

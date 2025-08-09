@@ -85,29 +85,63 @@ class PPTXExtractor:
         
         return text_content
     
-    def _extract_text_from_shape(self, shape: BaseShape) -> str:
-        """Extract text from a shape, including tables."""
+    def _extract_text_from_shape(self, shape) -> str:
+        """Extract text from a shape, handling all shape types safely."""
         text_parts = []
         
-        # Handle text frames
-        if hasattr(shape, 'text_frame') and shape.text_frame:
-            for paragraph in shape.text_frame.paragraphs:
-                paragraph_text = ''.join(run.text for run in paragraph.runs)
-                if paragraph_text.strip():
-                    text_parts.append(paragraph_text.strip())
-        
-        # Handle tables (GraphicFrame with table)
-        elif hasattr(shape, 'table') and shape.table is not None:
-            table_text = self._extract_table_text(shape.table)
-            if table_text:
-                text_parts.append(table_text)
-        
-        # Handle grouped shapes
-        elif hasattr(shape, 'shapes'):
-            for subshape in shape.shapes:
-                subtext = self._extract_text_from_shape(subshape)
-                if subtext:
-                    text_parts.append(subtext)
+        try:
+            # Handle text frames (most common text container)
+            if hasattr(shape, 'text_frame') and shape.text_frame:
+                for paragraph in shape.text_frame.paragraphs:
+                    paragraph_text = ''.join(run.text for run in paragraph.runs)
+                    if paragraph_text.strip():
+                        text_parts.append(paragraph_text.strip())
+            
+            # Handle tables (GraphicFrame with table) - safely check
+            if hasattr(shape, 'table'):
+                try:
+                    if shape.table is not None:
+                        table_text = self._extract_table_text(shape.table)
+                        if table_text:
+                            text_parts.append(table_text)
+                except (ValueError, AttributeError):
+                    # Not a table shape, skip
+                    pass
+            
+            # Handle charts (GraphicFrame with chart)
+            if hasattr(shape, 'chart'):
+                try:
+                    if shape.chart is not None:
+                        # Extract chart title and data labels if available
+                        chart_text = self._extract_chart_text(shape.chart)
+                        if chart_text:
+                            text_parts.append(chart_text)
+                except (ValueError, AttributeError):
+                    # Not a chart shape, skip
+                    pass
+            
+            # Handle grouped shapes
+            if hasattr(shape, 'shapes'):
+                try:
+                    for subshape in shape.shapes:
+                        subtext = self._extract_text_from_shape(subshape)
+                        if subtext:
+                            text_parts.append(subtext)
+                except (AttributeError, TypeError):
+                    # Not a group shape, skip
+                    pass
+            
+            # Handle text directly on shape (for some shape types)
+            if hasattr(shape, 'text') and not text_parts:
+                try:
+                    if shape.text and shape.text.strip():
+                        text_parts.append(shape.text.strip())
+                except (AttributeError, TypeError):
+                    pass
+                    
+        except Exception as e:
+            # Log the error but don't crash
+            logger.debug(f"Error extracting text from shape {type(shape)}: {e}")
         
         return ' '.join(text_parts)
     
@@ -124,6 +158,32 @@ class PPTXExtractor:
                 table_text.append(' | '.join(row_text))
         
         return '\n'.join(table_text)
+    
+    def _extract_chart_text(self, chart) -> str:
+        """Extract text from a chart (title, labels, etc.)."""
+        chart_text = []
+        
+        try:
+            # Chart title
+            if hasattr(chart, 'chart_title') and chart.chart_title:
+                try:
+                    if chart.chart_title.text_frame:
+                        title_text = chart.chart_title.text_frame.text
+                        if title_text and title_text.strip():
+                            chart_text.append(f"Chart: {title_text.strip()}")
+                except (AttributeError, TypeError):
+                    pass
+            
+            # Category and series labels (if accessible)
+            # Note: Detailed chart data extraction is complex and may require
+            # additional libraries or XML parsing
+            chart_text.append("[CHART_DETECTED]")
+            
+        except Exception as e:
+            logger.debug(f"Error extracting chart text: {e}")
+            chart_text.append("[CHART_DETECTED]")
+        
+        return ' '.join(chart_text)
     
     def _extract_numerical_data(self, text_content: List[str]) -> List[Dict[str, Any]]:
         """Extract numerical data from text content."""
@@ -162,10 +222,20 @@ class PPTXExtractor:
         images_text = []
         
         for shape in slide.shapes:
-            if isinstance(shape, Picture):
-                # Placeholder: In real implementation, perform OCR here
-                # For now, we'll just note that an image exists
-                images_text.append("[IMAGE_DETECTED - OCR would extract text here]")
+            try:
+                # Check for picture shapes
+                if hasattr(shape, 'image') or str(type(shape)).find('Picture') != -1:
+                    # Placeholder: In real implementation, perform OCR here
+                    # For now, we'll just note that an image exists
+                    images_text.append("[IMAGE_DETECTED - OCR would extract text here]")
+                
+                # Check for media shapes (videos, audio)
+                elif hasattr(shape, 'media_type'):
+                    images_text.append(f"[MEDIA_DETECTED - {getattr(shape, 'media_type', 'unknown')}]")
+                    
+            except Exception as e:
+                logger.debug(f"Error checking shape for images: {e}")
+                continue
         
         return images_text
     

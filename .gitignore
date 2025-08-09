@@ -122,12 +122,3 @@ Desktop.ini
 *.tmp
 *.temp
 *.log
-
-# Output files (but keep sample)
-*_analysis.json
-*_analysis.md
-reports/
-output/
-
-# But keep the sample presentation
-!sample_inconsistent_presentation.pptx

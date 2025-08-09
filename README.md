@@ -23,7 +23,8 @@ An AI-powered Python tool that analyzes PowerPoint presentations to detect factu
 ### Key Capabilities
 
 - **Comprehensive Analysis**: Examines text content, numerical data, tables, and metadata
-- **AI-Powered**: Uses Google Gemini 2.0 Flash for intelligent contradiction detection
+- **Multimodal Analysis**:  Examines both text and visual content of slides by sending images directly to the Gemini model
+- **AI-Powered**: Uses Google Gemini 2.5 Flash for intelligent contradiction detection
 - **Severity Classification**: Categorizes issues as Low, Medium, High, or Critical
 - **Confidence Scoring**: Provides confidence scores for each detected inconsistency
 - **Detailed Evidence**: Shows specific slide content that contains contradictions
@@ -34,6 +35,7 @@ An AI-powered Python tool that analyzes PowerPoint presentations to detect factu
 - Python 3.7 or higher
 - Google Gemini API key
 - PowerPoint presentation files (.pptx format)
+- **External Tools**: `libreoffice` and `imagemagick` must be installed on your system.
 
 ## 🚀 Installation
 
@@ -47,6 +49,15 @@ An AI-powered Python tool that analyzes PowerPoint presentations to detect factu
    ```bash
    pip install -r requirements.txt
    ```
+
+   - **For Conda users:** See the [Conda Environment Setup Guide](./guides/SETUP_CONDA.md) for detailed instructions.
+
+   - **Install external dependencies (don't install imagemagick again if done on conda)**
+
+
+      - **On Linux (Debian/Ubuntu):** `sudo apt-get install libreoffice imagemagick`
+      - **On macOS (Homebrew):** `brew install libreoffice imagemagick`
+      - **On Windows:** Install from official websites (I don't use it, apologies. If possible, you can just change the code tiny bit to take the images that you can make from somewhere else )).
 
 3. **Set up your Gemini API key**
    
@@ -143,9 +154,10 @@ Severity breakdown:
 
 ## 🏗️ Architecture
 
+For a detailed visual breakdown of the data flow and system architecture, please see the [Architectural Overview](./guides/DESIGN.md)
 The tool consists of several modular components:
 
-### Core Modules
+### Core Modules (Agents + Utils)
 
 1. **`pptx_extractor.py`** - Extracts text, numerical data, and metadata from PowerPoint files
 2. **`ai_analyzer.py`** - Uses Gemini AI to detect inconsistencies and contradictions
@@ -155,9 +167,9 @@ The tool consists of several modular components:
 
 ### Analysis Process
 
-1. **Content Extraction**: Parse PPTX file and extract text, numbers, tables, and metadata
-2. **AI Analysis**: Send structured content to Gemini for contradiction detection
-3. **Result Processing**: Parse AI response and classify inconsistencies
+1. **Content Extraction**: Parse PPTX file and extract text, numbers, tables, and metadata. Also, a two-step pipeline converts each slide to an image
+2. **AI Analysis**: Send structured content (raw text + slide images) to Gemini for multimodal contradiction detection.
+3. **Result Processing**: Parse AI response and classify inconsistencies.
 4. **Output Generation**: Format results for console, JSON, or Markdown output
 
 ## 🔧 Configuration
@@ -189,19 +201,19 @@ Extend the `OutputFormatter` class to add new output formats like CSV, XML, or c
 
 ### Current Limitations
 
-- **OCR Not Implemented**: Images within slides are detected but text extraction requires additional OCR setup
-- **Chart Analysis**: Limited analysis of chart data vs. visual chart content
-- **Language Support**: Optimized for English presentations
-- **File Formats**: Supports .pptx files primarily (.ppt support limited)
+- **External Dependencies**: The tool relies on external command-line tools like `libreoffice` and `ImageMagick` to convert presentations to images, which can be sensitive to system configuration.
+- **Large Presentation Performance**: Very large presentations may be limited by the Gemini API's token limits for multimodal content.
+- **Language Support**: Optimized for English presentations.
+- **File Formats**: Supports .pptx files primarily.
 
 ### Future Enhancements
 
-- OCR integration for image text extraction
-- Chart and graph content analysis
-- Multi-language support
-- Integration with presentation creation tools
-- Batch processing capabilities
-- Web interface option
+- **Pure-Python Rendering**: Replace external command-line tools (`libreoffice`, `magick`) with pure-Python libraries to remove external dependencies.
+- **Advanced Inconsistency Types**: Develop custom models or prompts for more nuanced detection (e.g., logical flaws in arguments, conflicting financial models).
+- **Multi-language Support**: Extend the tool's capabilities to analyze presentations in different languages.
+- **Integration with other tools**: Build a user interface or integrate with presentation creation platforms.
+- **Batch processing capabilities**
+- **Support for other document formats** like PDF and DOCX.
 
 ## 🚨 Error Handling
 
@@ -214,15 +226,17 @@ The tool includes comprehensive error handling for:
 - AI service errors
 - File permission issues
 
+You can use the `utils/test_system.py` script to test and debug if you want.
+
 ## 📈 Performance
 
 ### Typical Performance
 
-- **Small presentations** (5-10 slides): 5-15 seconds
-- **Medium presentations** (10-25 slides): 15-30 seconds  
-- **Large presentations** (25+ slides): 30-60 seconds
+- **Small presentations** (5-10 slides): 15-30 seconds (It was just on like 5 to 15 seconds before, but I added an extra slide image pipeline, hence the extra time)
+- **Medium presentations** (10-25 slides): 30-60 seconds  
+- **Large presentations** (25+ slides): 60+ seconds
 
-Performance depends on:
+Performance depends on (Well obviously, it more so depends on how good gemini is with mathematical reasoning and patterns, which I think its decent. I am able to detect 95%+ inconsistencies most of the times):
 - Slide content complexity
 - Amount of text and numerical data
 - Network latency to Gemini API
@@ -238,7 +252,7 @@ Performance depends on:
 
 Contributions are welcome! Areas for improvement:
 
-1. OCR integration for image text extraction
+1. Pure-Python rendering to remove external dependencies
 2. Additional inconsistency detection patterns
 3. Performance optimizations
 4. Multi-language support

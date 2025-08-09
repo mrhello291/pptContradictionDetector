@@ -56,35 +56,31 @@ class AIAnalyzer:
             logger.error(f"Error in AI analysis: {e}")
             raise
     
-    def _prepare_content_for_analysis(self, slides: List[SlideContent]) -> str:
+    
+    def _prepare_content_for_analysis(self, slides: List[SlideContent]) -> List[Any]:
         """Prepare slide content for AI analysis."""
         content_parts = []
         
         for slide in slides:
-            slide_info = f"\n--- SLIDE {slide.slide_number} ---"
+            # Step 1: Add raw text and metadata
+            content_parts.append(f"\n--- SLIDE {slide.slide_number} ---")
             if slide.title:
-                slide_info += f"\nTitle: {slide.title}"
-            
-            slide_info += f"\nContent: {slide.raw_content}"
-            
+                content_parts.append(f"Title: {slide.title}")
+            content_parts.append(f"Content: {slide.raw_content}")
             if slide.numerical_data:
-                slide_info += f"\nNumerical Data: {json.dumps(slide.numerical_data, indent=2)}"
-                
-            # Add images directly
+                content_parts.append(f"Numerical Data: {json.dumps(slide.numerical_data, indent=2)}")
+
+            # Step 2: Add all images (full-slide and individual)
             if slide.images_data:
-                slide_info +=f"\nAnalyzing images from slide {slide.slide_number}:"
+                content_parts.append(f"Images from slide {slide.slide_number}:")
                 for image_bytes in slide.images_data:
                     try:
-                        # This will allow the AI to 'see' the image
-                        image = Image.open(io.BytesIO(image_bytes))
-                        slide_info += '\n' + image
+                        content_parts.append(Image.open(io.BytesIO(image_bytes)))
                     except Exception as e:
                         logger.warning(f"Failed to open image bytes for analysis: {e}")
-                        continue
-            
-            content_parts.append(slide_info)
-        
-        return '\n'.join(content_parts)
+                        
+        return content_parts
+
     
     def _create_analysis_prompt(self, content: str) -> str:
         """Create a comprehensive prompt for inconsistency detection."""

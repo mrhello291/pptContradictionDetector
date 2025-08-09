@@ -12,6 +12,10 @@ from pptx.shapes.picture import Picture
 from pptx.table import Table
 from PIL import Image
 import base64
+import subprocess
+import tempfile
+import shutil
+import time
 
 from utils.models import SlideContent
 
@@ -206,17 +210,78 @@ class PPTXExtractor:
     
     def _render_slides_to_images(self, file_path: Path) -> List[ByteString]:
         """
-        Helper function to render each slide of the presentation as an image.
-        This is a placeholder for your chosen implementation (e.g., using LibreOffice, a library, etc.).
+        Renders each slide of the presentation as a JPG image using a two-step process:
+        1. PPTX to PDF using LibreOffice.
+        2. PDF to JPGs using magick (ImageMagick).
+        Requires LibreOffice and ImageMagick to be installed.
         """
-        logger.warning("Rendering slides to images is not implemented. Please add your chosen method here.")
-        # You would need to add your implementation here.
-        # Example using a hypothetical library:
-        # from pptx_image import convert_pptx_to_to_images
-        # return convert_pptx_to_to_images(file_path)
+        output_images_data = []
+        num_slides = len(Presentation(file_path).slides)
+        temp_dir = Path(tempfile.mkdtemp())
         
-        # Returning a placeholder for now to prevent crashes
-        return [b""] * len(Presentation(file_path).slides)
+        try:
+            # Step 1: Convert PPTX to PDF using LibreOffice
+            pdf_filename = file_path.stem + '.pdf'
+            pdf_path = temp_dir / pdf_filename
+            
+            command_pdf = [
+                'libreoffice',
+                '--headless',
+                '--convert-to', 'pdf',
+                '--outdir', str(temp_dir),
+                str(file_path)
+            ]
+            
+            logger.info(f"Step 1: Converting to PDF using libreoffice: {' '.join(command_pdf)}")
+            subprocess.run(command_pdf, check=True, capture_output=True, text=True, timeout=60)
+            
+            # Give LibreOffice a moment to finish writing the file
+            time.sleep(1) 
+            
+            if not pdf_path.exists():
+                # Fallback check for any PDF, in case of a different filename convention
+                found_pdfs = list(temp_dir.glob("*.pdf"))
+                if not found_pdfs:
+                    raise FileNotFoundError(f"LibreOffice failed to create any PDF in {temp_dir}")
+                pdf_path = found_pdfs[0]
+                
+            # Step 2: Convert PDF to a series of JPG images using magick
+            command_jpg = [
+                'magick',
+                '-density', '300',
+                '-quality', '90',
+                str(pdf_path),
+                str(temp_dir / "slide-%d.jpg")
+            ]
+            
+            logger.info(f"Step 2: Converting PDF to JPGs using magick: {' '.join(command_jpg)}")
+            subprocess.run(command_jpg, check=True, capture_output=True, text=True, timeout=60)
+            
+            image_files = sorted(temp_dir.glob('slide-*.jpg'))
+            
+            if len(image_files) != num_slides:
+                logger.error(
+                    f"PDF to JPG conversion failed. Expected {num_slides} images but found {len(image_files)}. "
+                    "This may indicate a corrupt PDF or a configuration issue."
+                )
+                raise RuntimeError("Mismatch between expected slides and rendered images.")
+                
+            for image_file in image_files:
+                with open(image_file, 'rb') as f:
+                    output_images_data.append(f.read())
+                    
+            logger.info(f"Successfully rendered {len(output_images_data)} slides to images.")
+            
+        except FileNotFoundError as e:
+            logger.error(f"Command not found. Please ensure LibreOffice and ImageMagick are installed and in your system's PATH. Error: {e}")
+            raise
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Conversion failed. Check command output. Error: {e.stderr}")
+            raise
+        finally:
+            shutil.rmtree(temp_dir)
+            
+        return output_images_data
     
     def _get_raw_content(self, slide) -> str:
         """Get raw content of the slide for comprehensive analysis."""

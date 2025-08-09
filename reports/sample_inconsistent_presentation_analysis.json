@@ -1,0 +1,124 @@
+{
+  "presentation_name": "sample_inconsistent_presentation.pptx",
+  "total_slides": 9,
+  "inconsistencies": [
+    {
+      "type": "numerical_conflict",
+      "severity": "critical",
+      "description": "Conflicting Q3 Revenue figures across multiple slides.",
+      "affected_slides": [
+        2,
+        4,
+        9
+      ],
+      "evidence": {
+        "slide_2": "Total Q3 Revenue: $2.4M",
+        "slide_4": "Q3 Revenue: $2.7M",
+        "slide_9": "Q3 revenue of $2.9M"
+      },
+      "confidence_score": 1.0,
+      "explanation": "The reported Q3 revenue for the same period (Q3 2024) is stated as $2.4M on Slide 2, $2.7M on Slide 4, and $2.9M on Slide 9. These are three distinct and contradictory figures for a core financial metric."
+    },
+    {
+      "type": "numerical_conflict",
+      "severity": "high",
+      "description": "Conflicting figures for new customers acquired in Q3.",
+      "affected_slides": [
+        2,
+        5,
+        9
+      ],
+      "evidence": {
+        "slide_2": "Customer Acquisition: 240 new customers",
+        "slide_5": "New customers acquired in Q3: 180",
+        "slide_9": "Excellent customer metrics: 220 new customers"
+      },
+      "confidence_score": 1.0,
+      "explanation": "The number of new customers acquired in Q3 is stated as 240 on Slide 2, 180 on Slide 5, and 220 on Slide 9. These are three different figures for the same customer acquisition metric."
+    },
+    {
+      "type": "numerical_conflict",
+      "severity": "high",
+      "description": "Conflicting customer retention rates across multiple slides.",
+      "affected_slides": [
+        2,
+        5,
+        9
+      ],
+      "evidence": {
+        "slide_2": "Customer Retention: 94%",
+        "slide_5": "Customer retention rate: 92%",
+        "slide_9": "97% customer retention"
+      },
+      "confidence_score": 1.0,
+      "explanation": "The customer retention rate is stated as 94% on Slide 2, 92% on Slide 5, and 97% on Slide 9. These are three different figures for the same customer metric."
+    },
+    {
+      "type": "factual_contradiction",
+      "severity": "critical",
+      "description": "Fundamentally contradictory descriptions of the market's competitive landscape and number of competitors.",
+      "affected_slides": [
+        3,
+        6,
+        9
+      ],
+      "evidence": {
+        "slide_3": "The market is highly competitive with 12 major players; Competition is intensifying with new entrants",
+        "slide_6": "Market has limited competition with only 3 major competitors; Low competitive pressure",
+        "slide_9": "Market leadership in low-competition environment; Successfully navigated highly competitive market"
+      },
+      "confidence_score": 1.0,
+      "explanation": "Slide 3 describes a 'highly competitive' market with '12 major players' and 'intensifying competition'. Slide 6 directly contradicts this by stating 'limited competition' with 'only 3 major competitors' and 'low competitive pressure'. Slide 9 further exacerbates this by presenting both 'low-competition environment' and 'highly competitive market' as highlights, indicating a severe and unresolved inconsistency regarding a core market characteristic."
+    },
+    {
+      "type": "percentage_error",
+      "severity": "high",
+      "description": "Product line revenue shares do not sum to 100%.",
+      "affected_slides": [
+        7
+      ],
+      "evidence": {
+        "slide_7": "Product A: 35% • Product B: 28% • Product C: 22% • Product D: 18% • Other: 5% Total: 108% (Should be 100%!)"
+      },
+      "confidence_score": 1.0,
+      "explanation": "The sum of the listed product line revenue shares (35+28+22+18+5) equals 108%, which is explicitly noted on the slide as incorrect, as a total distribution should sum to 100%."
+    },
+    {
+      "type": "timeline_mismatch",
+      "severity": "high",
+      "description": "First major client acquired before the company was founded.",
+      "affected_slides": [
+        8
+      ],
+      "evidence": {
+        "slide_8": "Company founded: March 2020; First major client: January 2019 (Before company was founded!)"
+      },
+      "confidence_score": 1.0,
+      "explanation": "The timeline indicates that the first major client was acquired in January 2019, which is more than a year before the company was founded in March 2020. This is a logical impossibility and the slide itself highlights it."
+    },
+    {
+      "type": "timeline_mismatch",
+      "severity": "medium",
+      "description": "A past event (Q1 2024 market expansion) is listed as a future milestone.",
+      "affected_slides": [
+        1,
+        8
+      ],
+      "evidence": {
+        "slide_1": "Company Q3 2024 Financial Report; Quarterly Business Review Prepared by Finance Team October 2024",
+        "slide_8": "Market expansion: Q1 2024 (Already happened but listed as future)"
+      },
+      "confidence_score": 1.0,
+      "explanation": "The report is for Q3 2024 and prepared in October 2024, meaning Q1 2024 has already passed. However, 'Market expansion: Q1 2024' is listed among future milestones like 'IPO planned: Q2 2025', which the slide itself acknowledges as an error."
+    }
+  ],
+  "processing_time": 36.8808069229126,
+  "summary": "Analysis completed for 9 slides.\nFound 7 inconsistencies:\nSeverity breakdown:\n  - Critical: 2\n  - High: 4\n  - Medium: 1\nType breakdown:\n  - Numerical Conflict: 3\n  - Factual Contradiction: 1\n  - Percentage Error: 1\n  - Timeline Mismatch: 2",
+  "total_inconsistencies": 7,
+  "severity_breakdown": {
+    "low": 0,
+    "medium": 1,
+    "high": 4,
+    "critical": 2
+  }
+}

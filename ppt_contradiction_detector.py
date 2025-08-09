@@ -17,11 +17,11 @@ from pathlib import Path
 from typing import Optional
 
 # Import our modules
-from config import Config
-from models import AnalysisResult
-from pptx_extractor import PPTXExtractor
-from ai_analyzer import AIAnalyzer
-from output_formatter import OutputFormatter
+from utils.config import Config
+from utils.models import AnalysisResult
+from agents.pptx_extractor import PPTXExtractor
+from agents.ai_analyzer import AIAnalyzer
+from agents.output_formatter import OutputFormatter
 
 def setup_logging(verbose: bool = False) -> None:
     """Setup logging configuration."""

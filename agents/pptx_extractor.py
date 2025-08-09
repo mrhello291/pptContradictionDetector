@@ -13,7 +13,7 @@ from pptx.table import Table
 from PIL import Image
 import base64
 
-from models import SlideContent
+from utils.models import SlideContent
 
 logger = logging.getLogger(__name__)
 

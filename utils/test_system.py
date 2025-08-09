@@ -12,19 +12,19 @@ def test_imports():
     print("🧪 Testing imports...")
     
     try:
-        import models
+        import utils.models as models
         print("  ✅ models")
         
-        import config  
+        import utils.config as config  
         print("  ✅ config")
         
-        import pptx_extractor
+        import agents.pptx_extractor as pptx_extractor
         print("  ✅ pptx_extractor")
         
-        import ai_analyzer
+        import agents.ai_analyzer as ai_analyzer
         print("  ✅ ai_analyzer")
         
-        import output_formatter
+        import agents.output_formatter as output_formatter
         print("  ✅ output_formatter")
         
         print("✅ All core modules imported successfully")
@@ -68,7 +68,7 @@ def test_configuration():
     print("\n🧪 Testing configuration...")
     
     try:
-        from config import Config
+        from utils.config import Config
         
         # Check if .env file exists
         env_file = Path('.env')
@@ -95,7 +95,7 @@ def test_models():
     print("\n🧪 Testing data models...")
     
     try:
-        from models import SlideContent, Inconsistency, InconsistencyType, SeverityLevel, AnalysisResult
+        from utils.models import SlideContent, Inconsistency, InconsistencyType, SeverityLevel, AnalysisResult
         
         # Test SlideContent
         slide = SlideContent(

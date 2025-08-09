@@ -7,8 +7,8 @@ import re
 from typing import List, Dict, Any, Optional
 import google.generativeai as genai
 
-from config import Config
-from models import SlideContent, Inconsistency, InconsistencyType, SeverityLevel
+from utils.config import Config
+from utils.models import SlideContent, Inconsistency, InconsistencyType, SeverityLevel
 
 logger = logging.getLogger(__name__)
 

@@ -15,11 +15,11 @@ class Config:
     GEMINI_API_KEY: Optional[str] = os.getenv('GEMINI_API_KEY')
     
     # Model Configuration
-    GEMINI_MODEL = "gemini-2.0-flash-exp"
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL')
     
     # Processing Configuration
-    MAX_TOKENS = 8192
-    TEMPERATURE = 0.1  # Low temperature for more consistent analysis
+    MAX_TOKENS = os.getenv('MAX_TOKENS')
+    TEMPERATURE = os.getenv('TEMPERATURE')  # Low temperature for more consistent analysis
     
     # Image Configuration
     MAX_IMAGE_SIZE = (1024, 1024)

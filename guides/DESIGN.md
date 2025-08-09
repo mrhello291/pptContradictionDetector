@@ -9,11 +9,11 @@ The tool is designed with a **modular pipeline** to handle document processing, 
 
 ```mermaid
 flowchart LR
-    A[ppt_contradiction_detector.py<br>(Main)] -->|1. Load| B[pptx_extractor.py<br>(Process & Extract)]
+    A[ppt_contradiction_detector.py\n(Main)] -->|1. Load| B[pptx_extractor.py\n(Process & Extract)]
     B -->|3. Analyze| C[ai_analyzer.py]
     C -->|4. Generate Report| D[output_formatter.py]
-    D -->|Save| E[reports/<br>.json, .md]
-    C --> F[Google Gemini API<br>(gemini-2.5-flash)]
+    D -->|Save| E[reports/\n.json, .md]
+    C --> F[Google Gemini API\n(gemini-2.5-flash)]
 ````
 
 ---
@@ -27,21 +27,21 @@ flowchart TD
     end
 
     subgraph extractor[pptx_extractor.py]
-        B1[1. Convert PPTX → PDF<br>Tool: libreoffice<br>Output: /tmp/presentation.pdf]
-        B2[2. Convert PDF → Images<br>Tool: magick<br>Output: /tmp/slide-*.jpg]
-        B3[3. Extract Raw Text<br>Output: Raw text strings]
-        B4[4. Bundle into List[SlideContent]<br>(text + image bytes)]
+        B1[1. Convert PPTX → PDF\nTool: libreoffice\nOutput: /tmp/presentation.pdf]
+        B2[2. Convert PDF → Images\nTool: magick\nOutput: /tmp/slide-*.jpg]
+        B3[3. Extract Raw Text\nOutput: Raw text strings]
+        B4[4. Bundle into List[SlideContent]\n(text + image bytes)]
     end
 
     subgraph analyzer[ai_analyzer.py]
-        C1[1. Construct Multimodal Prompt<br>Inputs: text, images, raw text]
-        C2[2. Send to Gemini API<br>Model: gemini-2.5-flash]
-        C3[3. Parse JSON Response<br>Output: List[Inconsistency]]
+        C1[1. Construct Multimodal Prompt\nInputs: text, images, raw text]
+        C2[2. Send to Gemini API\nModel: gemini-2.5-flash]
+        C3[3. Parse JSON Response\nOutput: List[Inconsistency]]
     end
 
     subgraph formatter[output_formatter.py]
-        D1[1. Generate Report Formats<br>Text, JSON, Markdown]
-        D2[2. Save to reports/<br>report.json, report.md]
+        D1[1. Generate Report Formats\nText, JSON, Markdown]
+        D2[2. Save to reports/\nreport.json, report.md]
     end
 
     main --> extractor
